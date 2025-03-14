@@ -3,7 +3,7 @@ class BaseStorage {
     #storage;
 
     constructor(maxSize = 10) {
-        if (maxSize <= 0 || typeof maxSize !== "number") {
+        if (maxSize <= 0 && typeof maxSize !== "number" && !Number.isInteger(maxSize)) {
             throw new Error("Invalid maxSize!");
         }
         this.#storage = [];
@@ -14,6 +14,10 @@ class BaseStorage {
         return this.#storage.length === 0;
     }
 
+    isFull() {
+        return this.storage.length >= this.maxSize;
+    }
+
     toArray() {
         return [...this.#storage];
     }
@@ -22,16 +26,6 @@ class BaseStorage {
         return this.#storage;
     }
 
-    static fromIterable(iterable, ClassType) {
-        if (!iterable || typeof iterable[Symbol.iterator] !== "function") {
-            throw new Error("Invalid iterable!");
-        }
-        const instance = new ClassType(iterable.length);
-        for (const elem of iterable) {
-            instance.push(elem);
-        }
-        return instance;
-    }
 }
 
 
@@ -39,7 +33,7 @@ class BaseStorage {
 
 class Stack extends BaseStorage {
     push(elem) {
-        if (this.storage.length >= this.maxSize) {
+        if (this.isFull()) {
             throw new Error("Stack is full!");
         }
         this.storage[this.storage.length] = elem;
@@ -59,15 +53,22 @@ class Stack extends BaseStorage {
     }
 
     static fromIterable(iterable) {
-        return BaseStorage.fromIterable(iterable, Stack);
+        if (!iterable || typeof iterable[Symbol.iterator] !== "function") {
+            throw new Error("Invalid iterable!");
+        }
+        const instance = new Stack(iterable.length);
+        for (const elem of iterable) {
+            instance.push(elem);
+        }
+        return instance;
     }
 }
 
 
 // Task 3
 class Queue extends BaseStorage {
-    push(elem) {
-        if (this.storage.length >= this.maxSize) {
+    add(elem) {
+        if (this.isFull()) {
             throw new Error("Queue is full!");
         }
         this.storage[this.storage.length] = elem;
@@ -90,22 +91,13 @@ class Queue extends BaseStorage {
     }
 
     static fromIterable(iterable) {
-        return BaseStorage.fromIterable(iterable, Queue);
+        if (!iterable || typeof iterable[Symbol.iterator] !== "function") {
+            throw new Error("Invalid iterable!");
+        }
+        const instance = new Queue(iterable.length);
+        for (const elem of iterable) {
+            instance.add(elem);
+        }
+        return instance;
     }
 }
-
-
-const stack = Stack.fromIterable([1, 2, 3]);
-const queue = Queue.fromIterable([1, 2, 3]);
-
-console.log(stack.peek());
-console.log(stack.pop());
-console.log(stack.isEmpty());
-stack.push(4);
-console.log(stack.toArray());
-
-console.log(queue.peek());
-console.log(queue.shift());
-console.log(queue.isEmpty());
-queue.push(4);
-console.log(queue.toArray());
